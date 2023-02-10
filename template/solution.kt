@@ -8,6 +8,10 @@ val sample = """
 fun main() {
 	testSamplePart1()
 	testSamplePart2()
+	val result1 = solvePart1()
+	println("Answer part1: $result1")
+	val result2 = solvePart2()
+	println("Answer part2: $result2")
 }
 
 private fun solvePart1(): Int {
