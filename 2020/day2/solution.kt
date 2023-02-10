@@ -1,5 +1,8 @@
 import java.io.File
+
 /*
+
+Part 1
 
 You have the following list:
 
@@ -13,6 +16,19 @@ In the above example, 2 passwords are valid. The middle password, cdefg, is not;
 
 How many passwords are valid according to their policies?
 
+-----
+
+Part 2
+
+Each policy actually describes two positions in the password, where 1 means the first character, 2 means the second character, and so on. (Be careful; Toboggan Corporate Policies have no concept of "index zero"!) Exactly one of these positions must contain the given letter. Other occurrences of the letter are irrelevant for the purposes of policy enforcement.
+
+Given the same example list from above:
+
+1-3 a: abcde is valid: position 1 contains a and position 3 does not.
+1-3 b: cdefg is invalid: neither position 1 nor position 3 contains b.
+2-9 c: ccccccccc is invalid: both position 2 and position 9 contain c.
+How many passwords are valid according to the new interpretation of the policies?
+
 */
 
 val sample = """
@@ -25,13 +41,15 @@ val policyRegex = """(\d+)-(\d+) (\w): (\w+)""".toRegex()
 
 fun main() {
 	testSamplePart1()
-	//testSamplePart2()
+	testSamplePart2()
 	val entries = readInput("input.txt")
-	val result1 = validPasswordsCount(entries)
+	val result1 = validPasswordsCountPart1(entries)
 	println("Answer part1: $result1")
+	val result2 = validPasswordsCountPart2(entries)
+	println("Answer part2: $result2")
 }
 
-private fun validPasswordsCount(entries: List<Entry>): Int {
+private fun validPasswordsCountPart1(entries: List<Entry>): Int {
 	val validPasswords = entries.filter { entry -> 
 		val letterCount = entry.password.count { it == entry.letter }
 		letterCount in entry.policy.min..entry.policy.max
@@ -40,8 +58,16 @@ private fun validPasswordsCount(entries: List<Entry>): Int {
 	return validPasswords.size
 }
 
-private fun solvePart2(): Int {
-	return 0
+private fun validPasswordsCountPart2(entries: List<Entry>): Int {
+	val validPasswords = entries.filter { entry -> 
+		entry.policy.let{ (min, max) -> 
+			val letterInFirstPosition = entry.password.getOrNull(min - 1) == entry.letter
+			val letterInSecondPosition = entry.password.getOrNull(max - 1) == entry.letter
+			letterInFirstPosition xor letterInSecondPosition
+		}
+	}
+	//println("validPasswords: ${printEntries(validPasswords)}")
+	return validPasswords.size	
 }
 
 data class Entry(
@@ -77,7 +103,7 @@ private fun testSamplePart1() {
 	//println("Sample read: ${printEntries(entries)}")
 
 	val resultExpected = 2
-	val resultActual = validPasswordsCount(entries)
+	val resultActual = validPasswordsCountPart1(entries)
 	if(resultExpected != resultActual) {
 		println("Part1 sample fails! Got $resultActual, expected $resultExpected")
 	} else {
@@ -86,8 +112,9 @@ private fun testSamplePart1() {
 }
 
 private fun testSamplePart2() {
+	val entries = readSample()
 	val resultExpected = 1
-	val resultActual = solvePart2()
+	val resultActual = validPasswordsCountPart2(entries)
 	if(resultExpected != resultActual) {
 		println("Part2 sample fails! Got $resultActual, expected $resultExpected")
 	} else {
