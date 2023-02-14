@@ -64,7 +64,7 @@ class Navigation {
 		if (instruction.direction == 'R') {
 			index = index + 1
 		} else {
-			index = index + 3
+			index = index + 3 // turning left equals turning right 3 times
 		}
 
 		index = index % 4
