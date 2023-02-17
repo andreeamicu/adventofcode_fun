@@ -84,54 +84,42 @@ val sample = """
 .#..#...#.#
 """.trimMargin()
 
-val sampleSlopes = listOf(Slope(1, 1), Slope(3, 1), Slope(5, 1), Slope(7, 1), Slope(1, 2))
+val slopes = listOf(1 to 1, 3 to 1, 5 to 1, 7 to 1, 1 to 2)
 
 fun main() {
 	testSamplePart1()
 	testSamplePart2()
-	val inputTerrain = Terrain(File("input.txt").readLines())
-	val result1 = inputTerrain.countTrees(Slope(right = 3, down = 1))
+
+	val lines = File("input.txt").readLines()
+	val result1 = countTrees(lines, 3 to 1)
 	println("Answer part1: $result1")
 	
-	val result2 = inputTerrain.countTrees(sampleSlopes).product()
+	val result2 = countTrees(lines, slopes).product()
 	println("Answer part2: $result2")
 }
 
-private fun List<Int>.product(): Long = fold(1) { product, element -> product.toLong() * element }
-
-class Terrain(val lines: List<String>) {
-
-	fun countTrees(slope: Slope): Int {
-		val slots = mutableListOf<Slot>()
-		var currentSlot = Slot(0, 0)
-		
-		while(currentSlot.row + slope.down < lines.size) {
-			val row = currentSlot.row + slope.down
-			val col = (currentSlot.col + slope.right) % lines[0].length
-			
-			currentSlot = Slot(row, col, lines[row][col])
-			slots.add(currentSlot)
-		}
-		return slots.fold(0) { sum, slot -> sum + slot.treeCount }
+private fun countTrees(lines: List<String>, slope: Pair<Int, Int>): Int {
+	val patternLength = lines[0].length
+	val (rightStep, downStep) = slope 
+	val slots = mutableListOf<Char>()
+	for(row in 0 until lines.size step downStep) {
+		val currentSteps = row / downStep
+		val col = (currentSteps * rightStep) % patternLength
+		slots.add(lines[row][col])
 	}
-
-	fun countTrees(slopes: List<Slope>): List<Int> {
-		return slopes.map { countTrees(it) }
-	}
-
+	return slots.count { it == '#' }
 }
 
-data class Slope(val right: Int, val down: Int)
-
-data class Slot(val row: Int, val col: Int, val symbol: Char = '.') {
-	val treeCount: Int
-		get() = if (symbol == '#') 1 else 0
+private fun countTrees(lines: List<String>, slopes: List<Pair<Int, Int>>): List<Int> {
+	return slopes
+		.map { slope -> countTrees(lines, slope) }
 }
+
+private fun List<Int>.product() = fold(1L) { x, y -> x.toLong() * y }
 
 private fun testSamplePart1() {
 	val resultExpected = 7
-	val terrain = Terrain(sample.lines())
-	val resultActual = terrain.countTrees(Slope(right = 3, down = 1))
+	val resultActual = countTrees(sample.lines(), 3 to 1)
 	if(resultExpected != resultActual) {
 		println("Part1 sample fails! Got $resultActual, expected $resultExpected")
 	} else {
@@ -140,19 +128,10 @@ private fun testSamplePart1() {
 }
 
 private fun testSamplePart2() {
-	/*
-	Right 1, down 1.
-	Right 3, down 1. (This is the slope you already checked.)
-	Right 5, down 1.
-	Right 7, down 1.
-	Right 1, down 2.
-	In the above example, these slopes would find 2, 7, 3, 4, and 2 tree(s); multiplied together, these produce the answer 336.
-	*/
-	
 	val expectedTrees = listOf(2, 7, 3, 4, 2)
 	val expectedProduct = 336L
-	val terrain = Terrain(sample.lines())
-	val countedTrees = terrain.countTrees(sampleSlopes)
+	val lines = sample.lines()
+	val countedTrees = countTrees(lines, slopes)
 	val product = countedTrees.product()
 
 	if(expectedTrees != countedTrees) {
